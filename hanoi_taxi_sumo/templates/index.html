@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hanoi Taxi SUMO Dashboard</title>
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""
+    >
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="masthead">
+            <div>
+                <p class="eyebrow">SUMO Taxi Ride-Hailing Dashboard</p>
+                <h1 id="scenario-name">Hanoi Taxi Ride-Hailing Demo</h1>
+                <p class="subhead" id="district-name">Preparing live scenario...</p>
+            </div>
+            <div class="status-box">
+                <div>
+                    <span class="status-label">Simulation Clock</span>
+                    <strong id="simulation-clock">Waiting for SUMO...</strong>
+                </div>
+                <div>
+                    <span class="status-label">Run Status</span>
+                    <strong id="run-status">Booting</strong>
+                </div>
+            </div>
+        </header>
+
+        <section class="kpi-strip">
+            <article class="kpi-card">
+                <span class="kpi-label">Revenue</span>
+                <strong class="kpi-value" id="kpi-revenue">0 VND</strong>
+                <span class="kpi-note">Collected fare from completed trips</span>
+            </article>
+            <article class="kpi-card">
+                <span class="kpi-label">CO2 Emitted</span>
+                <strong class="kpi-value" id="kpi-co2">0.000 kg</strong>
+                <span class="kpi-note">Taxi fleet total</span>
+            </article>
+            <article class="kpi-card">
+                <span class="kpi-label">Completed Trips</span>
+                <strong class="kpi-value" id="kpi-completed">0</strong>
+                <span class="kpi-note">Finished customer journeys</span>
+            </article>
+            <article class="kpi-card">
+                <span class="kpi-label">Avg Wait</span>
+                <strong class="kpi-value" id="kpi-wait">0.00 min</strong>
+                <span class="kpi-note">Pickup wait for completed trips</span>
+            </article>
+            <article class="kpi-card">
+                <span class="kpi-label">Utilization</span>
+                <strong class="kpi-value" id="kpi-utilization">0.0%</strong>
+                <span class="kpi-note">Share of taxis carrying passengers</span>
+            </article>
+            <article class="kpi-card">
+                <span class="kpi-label">Pending Requests</span>
+                <strong class="kpi-value" id="kpi-pending">0</strong>
+                <span class="kpi-note">Waiting or assigned, not yet dropped off</span>
+            </article>
+        </section>
+
+        <main class="dashboard-grid">
+            <section class="panel map-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Fleet Map</h2>
+                        <p>Taxis are colored by state across the Hoan Kiem core area.</p>
+                    </div>
+                    <div class="legend">
+                        <span><i class="legend-dot idle"></i>Idle</span>
+                        <span><i class="legend-dot pickup"></i>Pickup</span>
+                        <span><i class="legend-dot occupied"></i>Occupied</span>
+                        <span><i class="legend-dot shared"></i>Shared</span>
+                        <span><i class="legend-dot hotspot"></i>Demand hotspot</span>
+                    </div>
+                </div>
+                <div id="map"></div>
+            </section>
+
+            <section class="panel trend-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Service Trends</h2>
+                        <p>Trips, queue pressure, and utilization over simulation time.</p>
+                    </div>
+                </div>
+                <div class="chart-frame">
+                    <canvas id="ops-chart"></canvas>
+                </div>
+            </section>
+
+            <section class="panel economics-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Revenue and Emissions</h2>
+                        <p>Taxi fleet economics and environmental footprint.</p>
+                    </div>
+                </div>
+                <div class="chart-frame">
+                    <canvas id="economy-chart"></canvas>
+                </div>
+            </section>
+
+            <section class="panel details-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Operational Snapshot</h2>
+                        <p>Live capacity mix and final ride outcomes.</p>
+                    </div>
+                </div>
+                <dl class="detail-list">
+                    <div><dt>Fleet Distance</dt><dd id="detail-distance">0.00 km</dd></div>
+                    <div><dt>Active Rides</dt><dd id="detail-active">0</dd></div>
+                    <div><dt>Idle Taxis</dt><dd id="detail-idle">0</dd></div>
+                    <div><dt>Pickup Taxis</dt><dd id="detail-pickup">0</dd></div>
+                    <div><dt>Occupied Taxis</dt><dd id="detail-occupied">0</dd></div>
+                    <div><dt>CO2 per Trip</dt><dd id="detail-co2-trip">0.000 kg</dd></div>
+                    <div><dt>Revenue per Trip</dt><dd id="detail-revenue-trip">0 VND</dd></div>
+                    <div><dt>Avg Trip Time</dt><dd id="detail-trip-time">0.00 min</dd></div>
+                </dl>
+            </section>
+
+            <section class="panel trips-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Recent Trips</h2>
+                        <p>Latest completed rides with fare, wait, and trip length.</p>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Trip</th>
+                                <th>Taxi</th>
+                                <th>Wait</th>
+                                <th>Trip</th>
+                                <th>Distance</th>
+                                <th>Fare</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-trips-body">
+                            <tr>
+                                <td colspan="6" class="empty-row">Trips will appear once the simulation starts finishing rides.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        window.__INITIAL_STATE__ = {{ initial_state | tojson }};
+    </script>
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
