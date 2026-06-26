@@ -104,37 +104,4 @@ Expected behavior:
 3. Ride requests are injected during the run and dispatched by a custom TraCI nearest-taxi policy.
 4. The dashboard refreshes every second with taxi states and KPIs.
 
-## Scenario design
 
-Why Hoan Kiem core:
-
-- dense urban street pattern
-- strong taxi demand anchors such as Hoan Kiem Lake, Dong Xuan Market, the Opera House, and the railway station
-- compact size, so `sumo-gui` remains readable and the dashboard map is easy to follow
-
-Dispatch model:
-
-- SUMO taxi device is enabled on all taxis
-- custom TraCI dispatcher chooses the idle taxi with the shortest route to each new request
-- idle taxis use SUMO's `stop` behavior by default so they stay dispatchable instead of wandering into cul-de-sacs
-- the network import keeps sidewalks and turn-lane data, but skips `--osm.crossings` because that option crashes `netconvert` on this Hanoi extract with the tested Windows SUMO build
-
-Metrics shown:
-
-- revenue
-- CO2 emissions
-- fleet distance
-- completed trips
-- pending requests
-- active rides
-- idle, pickup, and occupied taxi counts
-- average wait time
-- average in-vehicle trip time
-- CO2 per trip
-- revenue per trip
-
-## Known limits
-
-- The dashboard and `sumo-gui` are separate windows. The browser dashboard is the KPI and geo-map view; `sumo-gui` is the microscopic traffic animation.
-- Requests are single-party rides by default. The code can be extended later for pooled rides.
-- If you change the district bbox a lot, you may need to regenerate the network and possibly retune fleet size and demand.
